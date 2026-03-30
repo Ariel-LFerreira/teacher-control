@@ -31,13 +31,13 @@ public class AppDbContext : DbContext
                 .HasDefaultValue(UserStatus.Active);
             entity.Property(u => u.Role).HasColumnName("role_id");
             //Garante que o usuário não possa ser excluído se houver uma relação com o role
-            entity.HasOne(u => u.Role).WithMany().HasForeignKey(u => u.Role).OnDelete(DeleteBehavior.Restrict); 
+            entity.HasOne<User>().WithMany().HasForeignKey(u => u.Role).OnDelete(DeleteBehavior.Restrict); 
             
         });
 
         modelBuilder.Entity<Lesson>(entity =>
         {
-            entity.ToTable("Lesson");
+            entity.ToTable("Lessons");
             entity.HasKey(u => u.Id);
             entity.Property(u => u.Id).HasColumnName("id");
             entity.Property(u => u.Date).HasColumnName("date").IsRequired().HasColumnType("date");     
@@ -53,7 +53,7 @@ public class AppDbContext : DbContext
         
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.ToTable("Lesson");
+            entity.ToTable("Roles");
             entity.HasKey(u => u.Id);
             entity.Property(u => u.Id).HasColumnName("id");
             entity.Property(u => u.Name).HasColumnName("name").IsRequired().HasMaxLength(100);
