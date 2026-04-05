@@ -1,9 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using TeacherControl.Data;
+using TeacherControl.Repositories;
+using TeacherControl.Repositories.Interfaces;
+using TeacherControl.Services;
+using TeacherControl.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args); // <-- deve vir primeiro
 
-// Add services to the container.
+// Add services to the container. // Serviços
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -14,7 +19,23 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
     ));
 
+//=============================================================================
+//INJEÇÃO DE DEPENDENCIA: Repository
+//=============================================================================
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<ILessonRepository, LessonRepository>();
+//=============================================================================
+//INJEÇÃO DE DEPENDENCIA: Services
+//=============================================================================
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<ILessonService, LessonService>();
+
+
 var app = builder.Build();
+
+app.MapControllers();
 
 // Garante que o banco de dados foi criado
 using (var scope = app.Services.CreateScope())
@@ -31,25 +52,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-    {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast");
 
 app.Run();
 
