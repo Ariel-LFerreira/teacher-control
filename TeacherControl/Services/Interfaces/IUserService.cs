@@ -12,4 +12,5 @@ public interface IUserService
     Task<UserResponseDto> GetById(Guid id);
     Task<List<UserResponseDto>> GetAll();
     Task<UserResponseDto?> GetUserByEmail(string email);
+    Task<LoginResponseDto> Auth(LoginRequestDto loginRequestDto);
 }

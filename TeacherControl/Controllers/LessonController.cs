@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TeacherControl.DTOs.Requests;
 using TeacherControl.DTOs.Response;
 using TeacherControl.Mapper;
@@ -34,7 +35,7 @@ public class LessonController(ILessonService lessonService) : ControllerBase
         return NoContent();
 
     }
-    
+    [Authorize(Roles="Manager")]
     [HttpGet]
     public async Task<ActionResult<List<LessonResponseDto>>> GetAll()
     {
@@ -42,7 +43,8 @@ public class LessonController(ILessonService lessonService) : ControllerBase
         
         return Ok(listLessons);
     }
-
+    
+    [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<ActionResult<LessonResponseDto>> GetById(Guid id)
     {

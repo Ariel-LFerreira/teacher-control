@@ -29,7 +29,7 @@ public class User : BaseModel
         if (string.IsNullOrWhiteSpace(email))
             throw new Exception("email is invalid!");
         
-        Email = email;
+        Email = email.ToLower().Trim();
     }
 
     public void SetPassword(string password)

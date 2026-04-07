@@ -55,5 +55,16 @@ public class UserController(IUserService userService) : ControllerBase
         var user = await userService.GetUserByEmail(email);
         return Ok(user);
     }
-    
+
+    [HttpPost("login")]
+    public async Task<ActionResult<LoginResponseDto>> Auth(LoginRequestDto loginRequestDto)
+    {
+        var login = await userService.Auth(loginRequestDto);
+
+        if (login == null)
+            return Unauthorized(new { menssage = "Email ou senha invalido" });
+
+        return Ok(login);
+    }
+
 }

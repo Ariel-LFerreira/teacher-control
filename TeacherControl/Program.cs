@@ -1,50 +1,98 @@
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using TeacherControl.Data;
+using TeacherControl.Models;
 using TeacherControl.Repositories;
 using TeacherControl.Repositories.Interfaces;
 using TeacherControl.Services;
 using TeacherControl.Services.Interfaces;
 
-var builder = WebApplication.CreateBuilder(args); // <-- deve vir primeiro
+var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container. // Serviços
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configuração do banco de dados
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
     ));
 
-//=============================================================================
-//INJEÇÃO DE DEPENDENCIA: Repository
-//=============================================================================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<ILessonRepository, LessonRepository>();
-//=============================================================================
-//INJEÇÃO DE DEPENDENCIA: Services
-//=============================================================================
+
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
+builder.Services.AddScoped<TokenService>();
 
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var key = Encoding.UTF8.GetBytes(jwtSettings["key"]);
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters {
+            ValidateIssuer            = true,
+            ValidateAudience          = true,
+            ValidateLifetime          = true,
+            ValidateIssuerSigningKey  = true,
+            ValidIssuer               = jwtSettings["Issuer"],
+            ValidAudience             = jwtSettings["Audience"],
+            IssuerSigningKey          = new SymmetricSecurityKey(key),
+            RoleClaimType = ClaimTypes.Role
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name         = "Authorization",
+        Type         = SecuritySchemeType.ApiKey,
+        Scheme       = "Bearer",
+        BearerFormat = "JWT",
+        In           = ParameterLocation.Header,
+        Description  = "Cole o token assim: Bearer {seu_token}"
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id   = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 
 app.MapControllers();
 
-// Garante que o banco de dados foi criado
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -53,9 +101,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.Run();
+app.UseAuthentication();
+app.UseAuthorization();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+app.Run();
