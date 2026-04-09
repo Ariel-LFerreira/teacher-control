@@ -11,11 +11,14 @@ public class LessonService(ILessonRepository lessonRepository) : ILessonService
 {
     public async Task<LessonResponseDto> Add(LessonRequestDto lessonRequestDto)
     {
-        var lesson = LessonMapper.ToEntity(new LessonRequestDto()); 
+        var lesson = LessonMapper.ToEntity(lessonRequestDto); 
         
         await lessonRepository.Add(lesson);
 
-        return LessonMapper.ToResponse(lesson);
+        var lessonCreated = await lessonRepository.GetById(lesson.Id);
+    
+        //Está retornando o objeto Lesson que acabou de ser criado (SEM O ROLE) POR ISSO REALIZO O GETBYID.
+        return LessonMapper.ToResponse(lessonCreated);
     }
 
     public async Task<LessonResponseDto> Update(Guid id, LessonRequestDto lessonRequestDto)

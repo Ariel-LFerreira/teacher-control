@@ -35,7 +35,7 @@ public class UserService(
 
         await userRepository.Add(user);
 
-        //Está retornando o objeto user que acabou de ser criado (SEM O ROLE) POR ISSO REALIZO O GETBYID (NÃO SEI SE É A FORMA CERTA)
+        //Está retornando o objeto user que acabou de ser criado (SEM O ROLE) POR ISSO REALIZO O GETBYID.
         var userCreated = await userRepository.GetById(user.Id);
 
         return UserMapper.ToResponse(userCreated);
@@ -90,7 +90,7 @@ public class UserService(
         return UserMapper.ToResponse(userByEmail);
     }
 
-    public async Task<LoginResponseDto> Auth(LoginRequestDto loginRequestDto)
+    public async Task<LoginResponseDto> Login(LoginRequestDto loginRequestDto)
     {
         var user = await userRepository.GetUserByEmail(loginRequestDto.Email);
 
@@ -101,11 +101,18 @@ public class UserService(
 
         if (passwordValidation == PasswordVerificationResult.Failed)
             return null;
-
+        
         var token = tokenService.GenerationToken(user);
 
         return new LoginResponseDto
         {
+            Email = user.Email,
+            Name = user.Name,
+            role = user.Role == null ? null : new RoleResponseDto
+            {
+                Name = user.Role.Name,
+                Description = user.Role.Description
+            },
             Token = token
         };
 

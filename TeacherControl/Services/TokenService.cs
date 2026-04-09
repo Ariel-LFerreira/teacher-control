@@ -11,7 +11,7 @@ public class TokenService(IConfiguration config)
     public string GenerationToken(User user)
     {
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(config["Jwt:Key"])
+            Encoding.UTF8.GetBytes(config["Jwt:Key"]!)
         );
         
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -19,7 +19,7 @@ public class TokenService(IConfiguration config)
         var claims = new[] {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role.ToString())   // ex: "Admin"
+            new Claim(ClaimTypes.Role, user.Role!.Name!.ToString())   // ex: "Admin"
         };
 
         var token = new JwtSecurityToken(

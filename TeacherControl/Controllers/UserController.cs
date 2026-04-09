@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TeacherControl.DTOs.Requests;
 using TeacherControl.DTOs.Response;
 using TeacherControl.Mapper;
@@ -13,12 +15,42 @@ namespace TeacherControl.Controllers;
 [Route("[controller]")]
 public class UserController(IUserService userService) : ControllerBase
 {
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me() =>
+            Ok(new {
+                id    = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                email = User.FindFirst(ClaimTypes.Email)?.Value,
+                role  = User.FindFirst(ClaimTypes.Role)?.Value 
+     });
+    
+    [HttpPost("login")]
+    public async Task<ActionResult<LoginResponseDto>> Login(LoginRequestDto loginRequestDto)
+    {
+        var login = await userService.Login(loginRequestDto);
+
+        if (login == null)
+            return Unauthorized(new { menssage = "Email ou senha invalido" });
+
+        return Ok(login);
+    }
+    
+    
     [HttpPost("/AddUser")]
     public async Task<ActionResult<UserResponseDto>> Post([FromBody] UserRequestDto userRequestDto)
     {
         var userResponse = await userService.Add(userRequestDto);
         return Ok(userResponse);
     }
+    
+    [HttpGet("email/{email}")]
+    public async Task<ActionResult<UserResponseDto>> GetUserByEmail(string email)
+    {
+        var user = await userService.GetUserByEmail(email);
+        return Ok(user);
+    }
+
+    
 
     [HttpPut("/UpdateUser/{id}")]
     public async Task<ActionResult<UserResponseDto>> Put(Guid id, [FromBody] UserRequestDto userRequestDto)
@@ -26,7 +58,8 @@ public class UserController(IUserService userService) : ControllerBase
         var updateUser = await userService.Update(id, userRequestDto);
         return Ok(updateUser);
     }
-
+    
+    [Authorize(Roles="Manager")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -47,24 +80,6 @@ public class UserController(IUserService userService) : ControllerBase
     {
         var user = await userService.GetById(id);
         return Ok(user);
-    }
-
-    [HttpGet("email/{email}")]
-    public async Task<ActionResult<UserResponseDto>> GetUserByEmail(string email)
-    {
-        var user = await userService.GetUserByEmail(email);
-        return Ok(user);
-    }
-
-    [HttpPost("login")]
-    public async Task<ActionResult<LoginResponseDto>> Auth(LoginRequestDto loginRequestDto)
-    {
-        var login = await userService.Auth(loginRequestDto);
-
-        if (login == null)
-            return Unauthorized(new { menssage = "Email ou senha invalido" });
-
-        return Ok(login);
     }
 
 }

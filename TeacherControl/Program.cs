@@ -14,10 +14,6 @@ using TeacherControl.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -35,6 +31,10 @@ builder.Services.AddScoped<TokenService>();
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
+// =========================
+// 🔐 JWT AUTHENTICATION
+// =========================
+// Configuração da autenticação baseada em tokens JWT (JSON Web Tokens)
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["key"]);
 
@@ -50,23 +50,41 @@ builder.Services
             ValidIssuer               = jwtSettings["Issuer"],
             ValidAudience             = jwtSettings["Audience"],
             IssuerSigningKey          = new SymmetricSecurityKey(key),
-            RoleClaimType = ClaimTypes.Role
+            ClockSkew                 = TimeSpan.Zero,                  // Remove o delay padrão na expiração (5 minutos)
         };
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
 
+
+// Configura a geração da documentação Swagger
+// Swagger é uma ferramenta para documentar e testar APIs REST
 builder.Services.AddSwaggerGen(options =>
 {
+    // Cria a documentação da versão v1 da API
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "API Teacher Control ", // Título da API
+        Version = "v1",                                     // Versão da API
+        Description = "API para controle de Professores com autenticação JWT" // Descrição
+    });
+
+    // 🔐 Configuração JWT no Swagger
+    // Define como o Swagger deve lidar com autenticação JWT na interface
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Name         = "Authorization",
-        Type         = SecuritySchemeType.ApiKey,
-        Scheme       = "Bearer",
-        BearerFormat = "JWT",
-        In           = ParameterLocation.Header,
-        Description  = "Cole o token assim: Bearer {seu_token}"
+        Name = "Authorization",              // Nome do cabeçalho HTTP
+        Type = SecuritySchemeType.Http,     // Tipo de esquema de segurança (HTTP)
+        Scheme = "bearer",                   // Esquema Bearer (para JWT)
+        BearerFormat = "JWT",                // Formato do token
+        In = ParameterLocation.Header,      // Local do token (cabeçalho HTTP)
+        Description = "Digite: Bearer SEU_TOKEN" // Texto de ajuda na interface do Swagger
     });
+
+    // Adiciona requisito de segurança para todos os endpoints
+    // Faz com que o Swagger exija o token JWT para acessar endpoints protegidos
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -74,18 +92,16 @@ builder.Services.AddSwaggerGen(options =>
             {
                 Reference = new OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id   = "Bearer"
+                    Type = ReferenceType.SecurityScheme, // Tipo de referência (esquema de segurança)
+                    Id = "Bearer"                        // ID do esquema definido acima
                 }
             },
-            Array.Empty<string>()
+            new string[] {} // Array vazio indica que se aplica a todos os escopos
         }
     });
 });
 
 var app = builder.Build();
-
-app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -99,9 +115,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllers();
 
 app.Run();

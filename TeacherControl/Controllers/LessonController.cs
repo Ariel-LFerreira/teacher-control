@@ -8,6 +8,7 @@ using TeacherControl.Services.Interfaces;
 
 namespace TeacherControl.Controllers;
 
+[Authorize(Roles="Manager")]
 [ApiController]
 [Route("[controller]")]
 public class LessonController(ILessonService lessonService) : ControllerBase
@@ -35,7 +36,7 @@ public class LessonController(ILessonService lessonService) : ControllerBase
         return NoContent();
 
     }
-    [Authorize(Roles="Manager")]
+    
     [HttpGet]
     public async Task<ActionResult<List<LessonResponseDto>>> GetAll()
     {
@@ -44,11 +45,10 @@ public class LessonController(ILessonService lessonService) : ControllerBase
         return Ok(listLessons);
     }
     
-    [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<ActionResult<LessonResponseDto>> GetById(Guid id)
     {
-        var lesson = lessonService.GetById(id);
+        var lesson = await lessonService.GetById(id);
 
         return Ok(lesson);
     }

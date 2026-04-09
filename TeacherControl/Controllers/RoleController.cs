@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TeacherControl.DTOs.Requests;
 using TeacherControl.DTOs.Response;
 using TeacherControl.Mapper;
@@ -8,6 +9,7 @@ using TeacherControl.Services.Interfaces;
 
 namespace TeacherControl.Controllers;
 
+[Authorize(Roles="student")]
 [ApiController]
 [Route("[controller]")]
 public class RoleController(IRoleService roleService) : ControllerBase
