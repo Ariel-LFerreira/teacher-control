@@ -12,10 +12,20 @@ public class UserService(
     IUserRepository userRepository,
     IRoleRepository roleRepository,
     IPasswordHasher<User> passwordHasher,
-    TokenService tokenService) : IUserService
+    TokenService tokenService) : BaseService<User, UserRequestDto, UserResponseDto>(userRepository), IUserService
     
 {
-    public async Task<UserResponseDto> Add(UserRequestDto userRequestDto)
+    protected override UserResponseDto ToResponse(User entity)
+    {
+        return UserMapper.ToResponse(entity);
+    }
+
+    protected override User ToEntity(UserRequestDto resquestDto)
+    {
+        return UserMapper.ToEntity(resquestDto);
+    }
+
+    public async Task<UserResponseDto> Create(UserRequestDto userRequestDto)
     {
         //VERIFICA SE EMAIL JÁ EXISTE, CASO EXISTA NÃO DEVE SER ADICIONADO O USÁRIO INFORMADO!
         var emailExist = await userRepository.GetUserByEmail(userRequestDto.Email.ToLower());
@@ -72,7 +82,9 @@ public class UserService(
 
         return UserMapper.ToResponse(userResponse);
     }
-
+    
+    
+    //AJUSTE TEMP - NÃO COMMITAR ATÉ TERMINAR: 
     public async Task<List<UserResponseDto>> GetAll()
     {
         var listUsers = await userRepository.GetAll();

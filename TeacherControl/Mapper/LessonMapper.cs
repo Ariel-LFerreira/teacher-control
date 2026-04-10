@@ -28,11 +28,6 @@ public class LessonMapper
             {
                 Name = lesson.User.Name,
                 Email = lesson.User.Email,
-                Role = lesson.User.Role == null ? null : new RoleResponseDto
-                {
-                    Name = lesson.User.Role.Name,
-                    Description = lesson.User.Role.Description
-                },
                 Status = lesson.User.Status
             },
         };

@@ -1,12 +1,11 @@
 ﻿using TeacherControl.DTOs.Requests;
 using TeacherControl.DTOs.Response;
-using TeacherControl.Models;
 
 namespace TeacherControl.Services.Interfaces;
 
-public interface IUserService
+public interface IUserService: IBaseService<UserRequestDto,UserResponseDto>
 {
-    Task<UserResponseDto> Add(UserRequestDto userRequestDto);
+    Task<UserResponseDto> Create(UserRequestDto userRequestDto);
     Task<UserResponseDto> Update (Guid id, UserRequestDto userRequest);
     Task Remove(Guid id);
     Task<UserResponseDto> GetById(Guid id);

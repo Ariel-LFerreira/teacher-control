@@ -9,5 +9,4 @@ public class LessonResponseDto
     public string Description { get; set; }
     public LessonStatus Status { get; set; }
     public UserResponseDto User { get; set; }
-    
 }

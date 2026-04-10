@@ -3,10 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeacherControl.DTOs.Requests;
 using TeacherControl.DTOs.Response;
-using TeacherControl.Mapper;
-using TeacherControl.Models;
-using TeacherControl.Repositories;
-using TeacherControl.Services;
 using TeacherControl.Services.Interfaces;
 
 namespace TeacherControl.Controllers;
@@ -35,10 +31,12 @@ public class UserController(IUserService userService) : ControllerBase
         return Ok(login);
     }
     
-    
     [HttpPost("/AddUser")]
     public async Task<ActionResult<UserResponseDto>> Post([FromBody] UserRequestDto userRequestDto)
     {
+        //==================================
+        //UTILIZANDO O ADD DO BASESERVICE
+        //==================================
         var userResponse = await userService.Add(userRequestDto);
         return Ok(userResponse);
     }
@@ -49,8 +47,6 @@ public class UserController(IUserService userService) : ControllerBase
         var user = await userService.GetUserByEmail(email);
         return Ok(user);
     }
-
-    
 
     [HttpPut("/UpdateUser/{id}")]
     public async Task<ActionResult<UserResponseDto>> Put(Guid id, [FromBody] UserRequestDto userRequestDto)

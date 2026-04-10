@@ -11,19 +11,18 @@ public class LessonRepository(AppDbContext context) : BaseRepository<Lesson>(con
     {
         return await context.Lessons
             .Include(l => l.User)
-            .ThenInclude(u => u.Role)
             .AsNoTracking()
             .ToListAsync();
     }
 
-    public async Task<Lesson?> GetById(Guid id)
-    {
-        return await context.Lessons
-            .Include(l => l.User)
-            .ThenInclude(u => u.Role)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(l => l.Id == id);
-    }
+    // public async Task<Lesson?> GetById(Guid id)
+    // {
+    //     return await context.Lessons
+    //         .Include(l => l.User)
+    //         .ThenInclude(u => u.Role)
+    //         .AsNoTracking()
+    //         .FirstOrDefaultAsync(l => l.Id == id);
+    // }
     
 }
 

@@ -8,7 +8,6 @@ using TeacherControl.Services.Interfaces;
 
 namespace TeacherControl.Controllers;
 
-[Authorize(Roles="Manager")]
 [ApiController]
 [Route("[controller]")]
 public class LessonController(ILessonService lessonService) : ControllerBase

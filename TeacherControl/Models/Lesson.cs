@@ -4,12 +4,8 @@ namespace TeacherControl.Models;
 
 public class Lesson : BaseModel
 {
-    /*
-     * “O EF Core precisa de um construtor sem parâmetros para materializar entidades ao carregar dados do banco.
-     * Usamos protected para permitir acesso via reflection pelo EF,
-     * mas impedir uso indevido pela aplicação.
-     */
     protected Lesson() { }
+    
     public Lesson(DateOnly date, string title, string description, Guid userId)
     {
         if (string.IsNullOrWhiteSpace(title))

@@ -1,6 +1,12 @@
 ﻿namespace TeacherControl.Models;
 
-public class BaseModel
+public abstract class BaseModel
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; private set; } = Guid.NewGuid();
+
+
+    public void ChangeID(Guid id)
+    {
+        Id = id;
+    }
 }
