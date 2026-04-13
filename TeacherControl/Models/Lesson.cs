@@ -6,14 +6,15 @@ public class Lesson : BaseModel
 {
     protected Lesson() { }
     
-    public Lesson(DateOnly date, string title, string description, Guid userId)
+    public Lesson(DateOnly date, string title, string description, Guid userId )
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new Exception("Title is invalid");
 
         if (string.IsNullOrWhiteSpace(description))
             throw new Exception("Description is invalid");
-
+        
+        
         if (userId == Guid.Empty)
             throw new Exception("UserId is invalid"); 
         

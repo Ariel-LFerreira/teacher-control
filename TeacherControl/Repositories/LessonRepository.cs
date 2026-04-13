@@ -7,7 +7,7 @@ namespace TeacherControl.Repositories;
 
 public class LessonRepository(AppDbContext context) : BaseRepository<Lesson>(context), ILessonRepository
 {
-    public async Task<List<Lesson>> GetAll()
+    public async Task<List<Lesson>> GetAllLessonUsers()
     {
         return await context.Lessons
             .Include(l => l.User)

@@ -9,10 +9,8 @@ using TeacherControl.Services.Interfaces;
 
 namespace TeacherControl.Controllers;
 
-
 [ApiController]
 [Route("[controller]")]
-[Authorize(Roles="student")]
 public class RoleController(IRoleService roleService) : ControllerBase
 {
     [HttpPost("/AddRole")]

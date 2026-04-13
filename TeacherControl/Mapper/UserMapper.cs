@@ -17,6 +17,17 @@ public static class UserMapper
         );
     }
     
+    //Entity => DTO Basic info
+    public static UserResponseSummaryDto ToSumaryResponse(User user)
+    {
+        return new UserResponseSummaryDto
+        {
+            Name = user.Name,
+            Email = user.Email,
+            Status = user.Status.ToString(), // string => APENAS PARA RETORNA O TEXTO NO SWAGGER (TELA)
+        };
+    }
+    
     //Entity => DTO
     public static UserResponseDto ToResponse(User user)
     {
@@ -24,13 +35,23 @@ public static class UserMapper
         {
             Name = user.Name,
             Email = user.Email,
-            //Role = user.Role, 
+            Status = user.Status.ToString(), // string => APENAS PARA RETORNA O TEXTO NO SWAGGER (TELA)
+            Lessons = user.Lessons == null 
+                                    ? null : 
+                                    user.Lessons.Select(l => new LessonResponseDto
+                                    {
+                                        Title = l.Title,
+                                        Status = l.Status.ToString(),
+                                        Description = l.Description
+                                        
+                                        
+                                    }).ToList(),
             Role = user.Role == null ? null : new RoleResponseDto
             {
                 Name = user.Role.Name,
                 Description = user.Role.Description
             },
-            Status = user.Status
+            
         };
     }
     

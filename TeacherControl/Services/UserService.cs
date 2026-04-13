@@ -11,8 +11,7 @@ namespace TeacherControl.Services;
 public class UserService(
     IUserRepository userRepository,
     IRoleRepository roleRepository,
-    IPasswordHasher<User> passwordHasher,
-    TokenService tokenService) : BaseService<User, UserRequestDto, UserResponseDto>(userRepository), IUserService
+    IPasswordHasher<User> passwordHasher) : BaseService<User, UserRequestDto, UserResponseDto>(userRepository), IUserService
     
 {
     protected override UserResponseDto ToResponse(User entity)
@@ -83,11 +82,16 @@ public class UserService(
         return UserMapper.ToResponse(userResponse);
     }
     
-    
-    //AJUSTE TEMP - NÃO COMMITAR ATÉ TERMINAR: 
-    public async Task<List<UserResponseDto>> GetAll()
+    public async Task<List<UserResponseSummaryDto>> GetAll()
     {
         var listUsers = await userRepository.GetAll();
+
+        return listUsers.Select(UserMapper.ToSumaryResponse).ToList();
+    }
+    
+    public async Task<List<UserResponseDto>> GetAllFull()
+    {
+        var listUsers = await userRepository.GetAllFull();
 
         return listUsers.Select(UserMapper.ToResponse).ToList();
     }
@@ -101,33 +105,4 @@ public class UserService(
 
         return UserMapper.ToResponse(userByEmail);
     }
-
-    public async Task<LoginResponseDto> Login(LoginRequestDto loginRequestDto)
-    {
-        var user = await userRepository.GetUserByEmail(loginRequestDto.Email);
-
-        if (user == null)
-            return null;
-
-        var passwordValidation = passwordHasher.VerifyHashedPassword(user, user.Password, loginRequestDto.Password);
-
-        if (passwordValidation == PasswordVerificationResult.Failed)
-            return null;
-        
-        var token = tokenService.GenerationToken(user);
-
-        return new LoginResponseDto
-        {
-            Email = user.Email,
-            Name = user.Name,
-            role = user.Role == null ? null : new RoleResponseDto
-            {
-                Name = user.Role.Name,
-                Description = user.Role.Description
-            },
-            Token = token
-        };
-
-    }
-
 }

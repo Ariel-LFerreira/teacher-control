@@ -13,7 +13,8 @@ public class LessonMapper
             lessonRequestDto.Date,
             lessonRequestDto.Title,
             lessonRequestDto.Description,
-            lessonRequestDto.UserId);
+            lessonRequestDto.UserId
+            );
     }
 
     public static LessonResponseDto ToResponse(Lesson lesson)
@@ -23,13 +24,7 @@ public class LessonMapper
             Date = lesson.Date,
             Title = lesson.Title,
             Description = lesson.Description,
-            Status = lesson.Status,
-            User = lesson.User == null ? null : new UserResponseDto
-            {
-                Name = lesson.User.Name,
-                Email = lesson.User.Email,
-                Status = lesson.User.Status
-            },
+            Status = lesson.Status.ToString(), // string => APENAS PARA RETORNA O TEXTO NO SWAGGER (TELA)
         };
     }
 }

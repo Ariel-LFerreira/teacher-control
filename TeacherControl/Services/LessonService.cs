@@ -7,10 +7,18 @@ using TeacherControl.Services.Interfaces;
 
 namespace TeacherControl.Services;
 
-public class LessonService(ILessonRepository lessonRepository) : ILessonService
+public class LessonService(
+                ILessonRepository lessonRepository,
+                IUserRepository userRepository) : ILessonService
 {
     public async Task<LessonResponseDto> Add(LessonRequestDto lessonRequestDto)
     {
+        //Verifica se o User ID é valido(SE EXISTE O USUÁRIO)
+        var ExistUser = userRepository.GetById(lessonRequestDto.UserId);
+
+        if (ExistUser is null)
+            throw new UnauthorizedAccessException("Invalid User!");
+        
         var lesson = LessonMapper.ToEntity(lessonRequestDto); 
         
         await lessonRepository.Add(lesson);
