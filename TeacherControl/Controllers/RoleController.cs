@@ -10,10 +10,10 @@ using TeacherControl.Services.Interfaces;
 namespace TeacherControl.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/v1/[controller]")]
 public class RoleController(IRoleService roleService) : ControllerBase
 {
-    [HttpPost("/AddRole")]
+    [HttpPost]
     public async Task<ActionResult<Role>> Post([FromBody] RoleRequestDto roleRequestDto)
     {
         var roleResponse = await roleService.Add(roleRequestDto);

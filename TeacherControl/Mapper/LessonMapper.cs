@@ -10,7 +10,7 @@ public class LessonMapper
     public static Lesson ToEntity(LessonRequestDto lessonRequestDto)
     {
         return new Lesson(
-            lessonRequestDto.Date,
+            lessonRequestDto.LessonDate,
             lessonRequestDto.Title,
             lessonRequestDto.Description,
             lessonRequestDto.UserId
@@ -21,7 +21,7 @@ public class LessonMapper
     {
         return new LessonResponseDto
         {
-            Date = lesson.Date,
+            LessonDate = lesson.LessonDate,
             Title = lesson.Title,
             Description = lesson.Description,
             Status = lesson.Status.ToString(), // string => APENAS PARA RETORNA O TEXTO NO SWAGGER (TELA)

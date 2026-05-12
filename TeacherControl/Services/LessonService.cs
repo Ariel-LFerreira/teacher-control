@@ -14,7 +14,7 @@ public class LessonService(
     public async Task<LessonResponseDto> Add(LessonRequestDto lessonRequestDto)
     {
         //Verifica se o User ID é valido(SE EXISTE O USUÁRIO)
-        var ExistUser = userRepository.GetById(lessonRequestDto.UserId);
+        var ExistUser = await userRepository.GetById(lessonRequestDto.UserId);
 
         if (ExistUser is null)
             throw new UnauthorizedAccessException("Invalid User!");
@@ -36,7 +36,7 @@ public class LessonService(
         if (lessonFound == null)
             throw new Exception("Lesson is not found!!!!");
         
-        lessonFound.SetDate(lessonRequestDto.Date);
+        lessonFound.SetDate(lessonRequestDto.LessonDate);
         lessonFound.SetTitle(lessonRequestDto.Title);
         lessonFound.SetDescription(lessonRequestDto.Description);
         

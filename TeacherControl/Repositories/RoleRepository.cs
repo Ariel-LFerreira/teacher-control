@@ -4,8 +4,4 @@ using TeacherControl.Repositories.Interfaces;
 
 namespace TeacherControl.Repositories;
 
-public class RoleRepository(AppDbContext context) : BaseRepository<Role>(context), IRoleRepository
-{
-    
-    
-}
+public class RoleRepository(AppDbContext context) : BaseRepository<Role>(context), IRoleRepository { }

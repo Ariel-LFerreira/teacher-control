@@ -36,20 +36,18 @@ public static class UserMapper
             Name = user.Name,
             Email = user.Email,
             Status = user.Status.ToString(), // string => APENAS PARA RETORNA O TEXTO NO SWAGGER (TELA)
-            Lessons = user.Lessons == null 
-                                    ? null : 
-                                    user.Lessons.Select(l => new LessonResponseDto
+            Lessons = user.Lessons?.Select(l => new LessonResponseDto
                                     {
+                                        LessonDate = l.LessonDate,
                                         Title = l.Title,
                                         Status = l.Status.ToString(),
                                         Description = l.Description
-                                        
-                                        
-                                    }).ToList(),
+                                    })
+                                    .ToList(),
             Role = user.Role == null ? null : new RoleResponseDto
             {
-                Name = user.Role.Name,
-                Description = user.Role.Description
+                Name = user.Role.Name ?? string.Empty,
+                Description = user.Role.Description ?? string.Empty
             },
             
         };

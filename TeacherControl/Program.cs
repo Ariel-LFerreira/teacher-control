@@ -1,126 +1,159 @@
-using System.Security.Claims;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using TeacherControl.Data;
-using TeacherControl.Models;
-using TeacherControl.Repositories;
-using TeacherControl.Repositories.Interfaces;
-using TeacherControl.Services;
-using TeacherControl.Services.Interfaces;
+    using FluentValidation;
+    using FluentValidation.AspNetCore;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.OpenApi.Models;
+    using TeacherControl.Data;
+    using TeacherControl.Extensions;
+    using TeacherControl.Middlewares;
+    using TeacherControl.Models;
+    using TeacherControl.Repositories;
+    using TeacherControl.Repositories.Interfaces;
+    using TeacherControl.Services;
+    using TeacherControl.Services.Interfaces;
+    using TeacherControl.Validators;
 
-var builder = WebApplication.CreateBuilder(args);
+    var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
-    ));
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseMySql(
+            builder.Configuration.GetConnectionString("DefaultConnection"),
+            ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+        ));
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-builder.Services.AddScoped<ILessonRepository, LessonRepository>();
-
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IRoleService, RoleService>();
-builder.Services.AddScoped<ILessonService, LessonService>();
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-
-
-
-// =========================
-// 🔐 JWT AUTHENTICATION
-// =========================
-// Configuração da autenticação baseada em tokens JWT (JSON Web Tokens)
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.UTF8.GetBytes(jwtSettings["key"]);
-
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+    // Padronizar erro do FluentValidation (ModelState)
+    builder.Services.Configure<ApiBehaviorOptions>(options =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters {
-            ValidateIssuer            = true,
-            ValidateAudience          = true,
-            ValidateLifetime          = true,
-            ValidateIssuerSigningKey  = true,
-            ValidIssuer               = jwtSettings["Issuer"],
-            ValidAudience             = jwtSettings["Audience"],
-            IssuerSigningKey          = new SymmetricSecurityKey(key),
-            ClockSkew                 = TimeSpan.Zero,                  // Remove o delay padrão na expiração (5 minutos)
+        // O FluentValidation automático NÃO passa pelo middleware = POR ISSO PRECISO DO "InvalidModelStateResponseFactory"
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(x => x.Value.Errors.Count > 0)
+                .SelectMany(x => x.Value.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+
+            var response = new ErrorResponse
+            {
+                Message = "Validation failed",
+                Errors = errors
+            };
+
+            return new BadRequestObjectResult(response);
         };
     });
 
-builder.Services.AddAuthorization();
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+    builder.Services.AddScoped<ILessonRepository, LessonRepository>();
 
+    builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IRoleService, RoleService>();
+    builder.Services.AddScoped<ILessonService, LessonService>();
+    builder.Services.AddScoped<ITokenService, TokenService>();
+    builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Configura a geração da documentação Swagger
-// Swagger é uma ferramenta para documentar e testar APIs REST
-builder.Services.AddSwaggerGen(options =>
-{
-    // Cria a documentação da versão v1 da API
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "API Teacher Control ", // Título da API
-        Version = "v1",                                     // Versão da API
-        Description = "API para controle de Professores com autenticação JWT" // Descrição
-    });
+    builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+    builder.Services.AddScoped<LoggingMiddleware>();
+    builder.Services.AddScoped<ExceptionMiddleware>();
 
-    // 🔐 Configuração JWT no Swagger
-    // Define como o Swagger deve lidar com autenticação JWT na interface
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",              // Nome do cabeçalho HTTP
-        Type = SecuritySchemeType.Http,     // Tipo de esquema de segurança (HTTP)
-        Scheme = "bearer",                   // Esquema Bearer (para JWT)
-        BearerFormat = "JWT",                // Formato do token
-        In = ParameterLocation.Header,      // Local do token (cabeçalho HTTP)
-        Description = "Digite: Bearer SEU_TOKEN" // Texto de ajuda na interface do Swagger
-    });
+    // =========================
+    // 🔐 JWT AUTHENTICATION
+    // =========================
+    // Configuração da autenticação baseada em tokens JWT (JSON Web Tokens)
+    /*var jwtSettings = builder.Configuration.GetSection("Jwt");
+    var key = Encoding.UTF8.GetBytes(jwtSettings["key"]);
 
-    // Adiciona requisito de segurança para todos os endpoints
-    // Faz com que o Swagger exija o token JWT para acessar endpoints protegidos
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+    builder.Services
+        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
         {
-            new OpenApiSecurityScheme
+            options.TokenValidationParameters = new TokenValidationParameters {
+                ValidateIssuer            = true,
+                ValidateAudience          = true,
+                ValidateLifetime          = true,
+                ValidateIssuerSigningKey  = true,
+                ValidIssuer               = jwtSettings["Issuer"],
+                ValidAudience             = jwtSettings["Audience"],
+                IssuerSigningKey          = new SymmetricSecurityKey(key),
+                ClockSkew                 = TimeSpan.Zero,                  // Remove o delay padrão na expiração (5 minutos)
+            };
+        });*/
+    builder.Services.AddJwtConfig(builder.Configuration); //SEPAREI A PARTE ACIMA.
+    
+    //  FluentValidation    // 
+    builder.Services.AddFluentValidationAutoValidation();
+    builder.Services.AddValidatorsFromAssemblyContaining<UserRequestValidator>();
+    builder.Services.AddValidatorsFromAssemblyContaining<LessonRequestValidator>();
+    builder.Services.AddValidatorsFromAssemblyContaining<RoleRequestValidator>();
+    builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
+
+
+    builder.Services.AddAuthorization();
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "API Teacher Control ",
+            Version = "v1", 
+            Description = "API para controle de Professores com autenticação JWT"
+        });
+
+        // Configuração JWT no Swagger
+        // Define como o Swagger deve lidar com autenticação JWT na interface
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Name = "Authorization",  
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer", 
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "Digite: Bearer SEU_TOKEN"
+        });
+
+        // Adiciona requisito de segurança para todos os endpoints
+        // Faz com que o Swagger exija o token JWT para acessar endpoints protegidos
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
             {
-                Reference = new OpenApiReference
+                new OpenApiSecurityScheme
                 {
-                    Type = ReferenceType.SecurityScheme, // Tipo de referência (esquema de segurança)
-                    Id = "Bearer"                        // ID do esquema definido acima
-                }
-            },
-            new string[] {} // Array vazio indica que se aplica a todos os escopos
-        }
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] {}
+            }
+        });
     });
-});
 
-var app = builder.Build();
+    var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
-}
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.EnsureCreated();
+    }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
 
-app.UseAuthentication();
-app.UseAuthorization();
+    //Middlewares:
+    app.UseMiddleware<LoggingMiddleware>();
+    app.UseMiddleware<ExceptionMiddleware>();
 
-app.MapControllers();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
-app.Run();
+    app.MapControllers();
+
+    app.Run();

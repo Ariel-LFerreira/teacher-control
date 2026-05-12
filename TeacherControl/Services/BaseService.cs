@@ -1,7 +1,9 @@
 ﻿using TeacherControl.Models;
+using TeacherControl.Models.Base;
 using TeacherControl.Repositories.Interfaces;
+using TeacherControl.Services.Interfaces;
 
-namespace TeacherControl.Services.Interfaces;
+namespace TeacherControl.Services;
 
 public  abstract class BaseService<TEntity, TResquestDto, TResponseDto> : IBaseService<TResquestDto, TResponseDto> where TEntity : BaseModel
 {
@@ -34,7 +36,7 @@ public  abstract class BaseService<TEntity, TResquestDto, TResponseDto> : IBaseS
         
         var updated = ToEntity(request);
 
-        updated.ChangeID(entity.Id);
+        updated.ChangeId(entity.Id);
 
         await _repository.Update(updated);
 

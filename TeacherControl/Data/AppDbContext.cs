@@ -54,7 +54,7 @@ public class AppDbContext : DbContext
             entity.HasKey(u => u.Id);
             
             entity.Property(u => u.Id).HasColumnName("id");
-            entity.Property(u => u.Date).HasColumnName("date").IsRequired().HasColumnType("date");     
+            entity.Property(u => u.LessonDate).HasColumnName("LessonDate").IsRequired().HasColumnType("date");     
             entity.Property(u => u.Title).HasColumnName("title").IsRequired().HasMaxLength(100);
             entity.Property(u => u.Description).HasColumnName("description").IsRequired().HasMaxLength(250);
             entity.Property(u => u.Status).HasColumnName("status").IsRequired().HasConversion<int>()

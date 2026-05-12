@@ -8,16 +8,14 @@ using TeacherControl.Services.Interfaces;
 namespace TeacherControl.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/v1/[controller]")]
 public class UserController(IUserService userService) : ControllerBase
 {
-    [HttpPost("/AddUser")]
+    [HttpPost]
     public async Task<ActionResult<UserResponseDto>> Post([FromBody] UserRequestDto userRequestDto)
     {
-        //==================================
-        //UTILIZANDO O ADD DO BASESERVICE
-        //==================================
-        var userResponse = await userService.Add(userRequestDto);
+        //var userResponse = await userService.Add(userRequestDto); // UTILIZA O BASE SERVICE (GEnerics)
+        var userResponse = await userService.Create(userRequestDto);
         return Ok(userResponse);
     }
     

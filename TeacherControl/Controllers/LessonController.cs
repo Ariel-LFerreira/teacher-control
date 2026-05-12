@@ -9,10 +9,10 @@ using TeacherControl.Services.Interfaces;
 namespace TeacherControl.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/v1/[controller]")]
 public class LessonController(ILessonService lessonService) : ControllerBase
 {
-    [HttpPost("/AddLesson")]
+    [HttpPost]
     public async Task<ActionResult<LessonResponseDto>> Post([FromBody] LessonRequestDto lessonRequestDto)
     {
         var lessonResponse = await lessonService.Add(lessonRequestDto);

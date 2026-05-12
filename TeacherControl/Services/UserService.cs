@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using TeacherControl.DTOs.Requests;
 using TeacherControl.DTOs.Response;
+using TeacherControl.Enums;
+using TeacherControl.Extensions;
 using TeacherControl.Mapper;
 using TeacherControl.Models;
 using TeacherControl.Repositories.Interfaces;
@@ -26,18 +28,18 @@ public class UserService(
 
     public async Task<UserResponseDto> Create(UserRequestDto userRequestDto)
     {
-        //VERIFICA SE EMAIL JÁ EXISTE, CASO EXISTA NÃO DEVE SER ADICIONADO O USÁRIO INFORMADO!
-        var emailExist = await userRepository.GetUserByEmail(userRequestDto.Email.ToLower());
-        if (emailExist != null)
-            throw new Exception("Email already registered!!!");
+        if (await userRepository.GetUserByEmail(userRequestDto.Email.ToLower()) != null)
+            throw new DomainException("Email already registered");
 
-        //VERIFICA SE O ROLE EXISTE, CASO NÃO EXISTA NÃO É POSSIVEL ADICIONAR O USER
-        var roleExists = await roleRepository.GetById(userRequestDto.RoleId);
-        if (roleExists == null)
-            throw new Exception("Role not found!");
-
+        var role = await roleRepository.GetById(userRequestDto.RoleId);
+        if (role == null)
+            throw new DomainException("Role not found");
+        
         var user = UserMapper.ToEntity(userRequestDto);
-
+        
+        //VALIDAÇÂO EXTRA (MODEL USER)
+        user.Validate();
+        
         // FAZ O HASHER DA SENHA
         var hashedPassword = passwordHasher.HashPassword(user, userRequestDto.Password);
         user.SetPassword(hashedPassword);
@@ -55,13 +57,25 @@ public class UserService(
         var userFound = await userRepository.GetById(id);
 
         if (userFound == null)
-            throw new Exception("User not found!");
+            throw new DomainException("User not found");
+
+        var emailExists = await userRepository.GetUserByEmail(userRequestDto.Email);
+
+        if (emailExists != null && emailExists.Id != id)
+            throw new DomainException("Email already registered");
+
+        var roleExists = await roleRepository.GetById(userRequestDto.RoleId);
+
+        if (roleExists == null)
+            throw new DomainException("Role not found");
+        
+        var hashed = passwordHasher.HashPassword(userFound, userRequestDto.Password);
 
         userFound.SetEmail(userRequestDto.Email);
-        userFound.SetPassword(userRequestDto.Password);
+        userFound.SetPassword(hashed);
         userFound.SetName(userRequestDto.Name);
         userFound.SetRoleId(userRequestDto.RoleId);
-
+        
         await userRepository.Update(userFound);
 
         return UserMapper.ToResponse(userFound);

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TeacherControl.Data;
 using TeacherControl.Models;
+using TeacherControl.Models.Base;
 using TeacherControl.Repositories.Interfaces;
 
 namespace TeacherControl.Repositories;

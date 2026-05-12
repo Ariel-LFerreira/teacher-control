@@ -5,5 +5,5 @@ namespace TeacherControl.Services.Interfaces;
 
 public interface IAuthService
 {
-    Task<LoginResponseDto> Login(LoginRequestDto loginRequestDto);
+    Task<LoginResponseDto?> Login(LoginRequestDto loginRequestDto);
 }

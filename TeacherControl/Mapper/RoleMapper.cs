@@ -14,15 +14,14 @@ public class RoleMapper
             roleRequestDto.Name,
             roleRequestDto.Description
         );
-
     }
 
     public static RoleResponseDto ToResponse(Role role)
     {
         return new RoleResponseDto
         {
-            Name = role.Name,
-            Description = role.Description
+            Name = role.Name ?? string.Empty,
+            Description = role.Description ?? string.Empty
         };
     }
 }
