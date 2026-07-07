@@ -50,7 +50,6 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
 
     public async Task<RoleResponseDto> GetById(Guid id)
     {
-        //NÃO permitir deletar Role SE HOUVER USERS VÍNCULADO
         var role = await roleRepository.GetById(id);
 
         if(role == null)

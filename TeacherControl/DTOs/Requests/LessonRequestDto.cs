@@ -2,6 +2,13 @@
 
 namespace TeacherControl.DTOs.Requests;
 
+/*
+ * Isso é um DTO puro (anêmico)
+ * Não tem construtor
+ * Não tem validação
+ * Não lança exception
+ */
+
 public class LessonRequestDto
 {
     public DateOnly LessonDate { get; set; }

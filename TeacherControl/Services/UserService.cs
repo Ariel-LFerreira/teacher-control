@@ -37,16 +37,13 @@ public class UserService(
         
         var user = UserMapper.ToEntity(userRequestDto);
         
-        //VALIDAÇÂO EXTRA (MODEL USER)
         user.Validate();
         
-        // FAZ O HASHER DA SENHA
         var hashedPassword = passwordHasher.HashPassword(user, userRequestDto.Password);
         user.SetPassword(hashedPassword);
 
         await userRepository.Add(user);
 
-        //Está retornando o objeto user que acabou de ser criado (SEM O ROLE) POR ISSO REALIZO O GETBYID.
         var userCreated = await userRepository.GetById(user.Id);
 
         return UserMapper.ToResponse(userCreated);

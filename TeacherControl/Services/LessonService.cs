@@ -13,7 +13,6 @@ public class LessonService(
 {
     public async Task<LessonResponseDto> Add(LessonRequestDto lessonRequestDto)
     {
-        //Verifica se o User ID é valido(SE EXISTE O USUÁRIO)
         var ExistUser = await userRepository.GetById(lessonRequestDto.UserId);
 
         if (ExistUser is null)
@@ -25,7 +24,6 @@ public class LessonService(
 
         var lessonCreated = await lessonRepository.GetById(lesson.Id);
     
-        //Está retornando o objeto Lesson que acabou de ser criado (SEM O ROLE) POR ISSO REALIZO O GETBYID.
         return LessonMapper.ToResponse(lessonCreated);
     }
 

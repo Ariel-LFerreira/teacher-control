@@ -75,13 +75,6 @@ public class User : BaseModel
         Status = status;
     }
 
-
-    // =========================================
-    /* VALIDAÇÃO DE DOMÍNIO:
-            DEVO REMOVER? POIS COM FLUENTVALIDATION AUTOMATIC, MEU QUE NÃO PRECISO NO SERVICE, SERÀ REDUNDANTE?
-                CONFIRMAR*/
-    // =========================================
-
     public override bool Validate()
     {
         var errors = new List<string>();

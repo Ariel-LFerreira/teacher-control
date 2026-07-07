@@ -38,23 +38,6 @@ public class ExceptionMiddleware : IMiddleware
         }
         catch (ApiException ex)
         {
-            /*
-            _logger.LogError($"[{context.Response.StatusCode}] {ex.Message} ");
-            
-            context.Response.ContentType = "application/json";
-            
-            var options = new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
-            var json = JsonSerializer.Serialize(new
-            {
-                sucess  = false, 
-                message = ex.Message,
-                status  = ex.StatusCode
-            }, options);
-            
-            await context.Response.WriteAsync(json);
-            */
-            
             _logger.LogWarning(ex, "API error");
 
             context.Response.StatusCode = ex.StatusCode;

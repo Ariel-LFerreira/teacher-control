@@ -15,13 +15,20 @@
     using TeacherControl.Validators;
 
     var builder = WebApplication.CreateBuilder(args);
-
+    
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(
+            builder.Configuration.GetConnectionString("DefaultConnection")
+        ));
+    
+    /* REMOVIDO POIS NÃO CONSEGUI INSTALAR O MySql WorkBench
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseMySql(
             builder.Configuration.GetConnectionString("DefaultConnection"),
             ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
         ));
-
+    */
+    
     // Padronizar erro do FluentValidation (ModelState)
     builder.Services.Configure<ApiBehaviorOptions>(options =>
     {
@@ -88,7 +95,8 @@
     builder.Services.AddValidatorsFromAssemblyContaining<LessonRequestValidator>();
     builder.Services.AddValidatorsFromAssemblyContaining<RoleRequestValidator>();
     builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
-
+    
+    builder.Services.AddHttpContextAccessor();
 
     builder.Services.AddAuthorization();
     builder.Services.AddControllers();

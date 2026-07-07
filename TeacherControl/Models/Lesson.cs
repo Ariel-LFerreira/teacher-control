@@ -29,11 +29,6 @@ public class Lesson : BaseModel
     public void SetDescription(string description) { Description = description; }
     public void SetDate(DateOnly date) { LessonDate = date; }
     public void SetStatus(LessonStatus status) { Status = status; }
-    
-    // =========================================
-    /* DEVO REMOVER? POIS COM FLUENTVALIDATION AUTOMATIC,
-       ACREDITO QUE NÃO PRECISO NO SERVICE, SERÀ REDUNDANTE?   --  CONFIRMAR*/
-    // =========================================
 
     public override bool Validate()
     {

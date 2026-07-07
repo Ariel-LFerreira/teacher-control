@@ -16,7 +16,6 @@ public class Role : BaseModel
     public string? Name { get; private set; }
     public string? Description { get; private set; }
     public ICollection<User>? Users { get; private set; }
-
     public void SetName(string name) { Name = name; }
     public void SetDescription(string description) { Description = description; }
     
