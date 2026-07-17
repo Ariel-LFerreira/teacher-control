@@ -1,5 +1,6 @@
 ﻿using TeacherControl.DTOs.Requests;
 using TeacherControl.DTOs.Response;
+using TeacherControl.Extensions;
 using TeacherControl.Mapper;
 using TeacherControl.Models;
 using TeacherControl.Repositories.Interfaces;
@@ -11,12 +12,15 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
 {
     public async Task<RoleResponseDto> Add(RoleRequestDto roleRequestDto)
     {
-        //DTO -> Entity
+        var roleAlredyExists = await roleRepository.GetRoleByName(roleRequestDto.Name);
+
+        if (roleAlredyExists != null)
+            throw new DomainException("Role already exists");
+
         var role = RoleMapper.ToEntity(roleRequestDto);
-        
+
         await roleRepository.Add(role);
-        
-        //Entity -> DTO
+
         return RoleMapper.ToResponse(role);
     }
 
